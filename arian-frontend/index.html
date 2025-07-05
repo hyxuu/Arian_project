@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arian Music - Dashboard</title>
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Variables para colores */
+        :root {
+            --bg-dark: #1e1e1e;
+            --bg-darker: #121212;
+            --text-light: #e0e0e0;
+            --text-muted: #888;
+            --accent-pink: #ff69b4; /* Color rosa del álbum activo y el botón de play */
+            --accent-purple: #8a2be2; /* Un tono de morado para elementos activos */
+            --border-radius: 10px;
+            --padding-sm: 10px;
+            --padding-md: 20px;
+        }
+
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif; /* Usar una fuente similar a la de la imagen, si no está disponible, se usará sans-serif */
+            background-color: var(--bg-darker);
+            color: var(--text-light);
+            display: flex;
+            overflow: hidden; /* Evita scrollbars duplicados */
+            height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
+        }
+
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            position: relative; /* Para posicionar el footer */
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px; /* Ancho fijo para el sidebar */
+            background-color: var(--bg-dark);
+            padding: var(--padding-md);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255, 255, 255, 0.05); /* Separador sutil */
+            height: 100%; /* Ocupa toda la altura disponible */
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            overflow-y: auto; /* Para que el contenido del sidebar sea scrollable si es muy largo */
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--padding-md);
+        }
+
+        .sidebar-header img {
+            height: 40px;
+            margin-right: var(--padding-sm);
+        }
+
+        .sidebar-header h2 {
+            color: var(--text-light); /* Ahora usa --text-light para adaptarse al tema */
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .sidebar-nav {
+            flex-grow: 1; /* Permite que la navegación ocupe el espacio restante */
+        }
+
+        .nav-section {
+            margin-bottom: var(--padding-md);
+        }
+
+        .nav-section h3 {
+            color: var(--text-muted);
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: var(--padding-sm);
+            padding-left: var(--padding-sm);
+        }
+
+        .nav-section ul {
+            list-style: none;
+        }
+
+        .nav-section li {
+            margin-bottom: 5px;
+        }
+
+        .nav-section a {
+            display: flex;
+            align-items: center;
+            padding: var(--padding-sm) var(--padding-md);
+            color: var(--text-light);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .nav-section a .icon {
+            margin-right: var(--padding-sm);
+            font-size: 1.2em; /* Ajusta el tamaño de los iconos */
+            width: 20px; /* Asegura un ancho fijo para alinear los iconos */
+            text-align: center;
+        }
+
+        .nav-section a:hover,
+        .nav-section li.active a {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--accent-pink);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1; /* Ocupa el espacio restante horizontalmente */
+            background-color: var(--bg-darker);
+            padding: var(--padding-md);
+            overflow-y: auto; /* Permite desplazamiento vertical */
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px); /* Resta la altura del player bar */
+        }
+
+        .main-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--padding-sm) 0;
+            margin-bottom: var(--padding-md);
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-darker);
+            z-index: 10;
+        }
+
+        .navigation-buttons .nav-btn {
+            background-color: var(--bg-dark);
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-size: 1.2em;
+            cursor: pointer;
+            margin-right: calc(var(--padding-sm) / 2); /* Corregido el cálculo */
+            transition: background-color 0.2s ease;
+        }
+
+        .navigation-buttons .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .search-bar {
+            flex-grow: 1; /* Ocupa la mayor parte del espacio */
+            margin: 0 var(--padding-md);
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: var(--padding-sm) var(--padding-md) var(--padding-sm) 40px; /* Espacio para el icono */
+            background-color: var(--bg-dark);
+            border: none;
+            border-radius: 25px; /* Más redondeado */
+            color: var(--text-light);
+            font-size: 1em;
+        }
+
+        .search-bar input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-bar .search-icon {
+            position: absolute;
+            left: var(--padding-md);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        /* New wrapper for user profile and dropdown */
+        .user-profile-wrapper {
+            position: relative; /* For absolute positioning of the dropdown */
+            display: flex; /* To align with other header elements */
+            align-items: center;
+            margin-left: var(--padding-md);
+        }
+
+        .user-profile {
+            /* Existing styles for user-profile */
+            display: flex; /* Always visible as there's no login/logout */
+            align-items: center;
+            background-color: var(--bg-dark);
+            padding: 5px var(--padding-md);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .user-profile:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .user-profile .profile-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: var(--padding-sm);
+            object-fit: cover;
+        }
+
+        .user-profile span {
+            margin-right: var(--padding-sm);
+        }
+
+        .user-profile .dropdown-icon {
+            font-size: 0.8em;
+        }
+
+        /* Auth Buttons (Removed as no Firebase Auth) */
+        .auth-buttons {
+            display: none; /* Hidden as there's no authentication */
+        }
+
+        /* Dropdown menu styles */
+        .user-dropdown-menu {
+            display: none; /* Hidden by default, toggled by JS */
+            position: absolute;
+            top: 100%; /* Position below the user-profile */
+            right: 0;
+            background-color: var(--bg-dark);
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            min-width: 180px;
+            padding: 10px 0;
+            z-index: 101; /* Above other elements */
+            margin-top: 5px; /* Small gap */
+        }
+
+        .user-dropdown-menu .menu-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.2s ease;
+        }
+
+        .user-dropdown-menu .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-dropdown-menu .menu-item i {
+            font-size: 1em;
+            color: var(--text-muted);
+        }
+
+        .user-dropdown-menu .menu-item label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%; /* Make label fill the item */
+        }
+
+        .user-dropdown-menu .menu-item input[type="file"] {
+            display: none; /* Hide actual file input */
+        }
+
+        .user-dropdown-menu .menu-item button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-dropdown-menu .menu-item button:hover {
+            color: var(--accent-pink);
+        }
+
+        /* Styles for username input in dropdown */
+        .user-dropdown-menu .username-input-group {
+            display: flex;
+            flex-direction: column;
+            padding: 10px 15px;
+            gap: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Separator */
+            margin-bottom: 10px;
+        }
+
+        .user-dropdown-menu .username-input-group input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            background-color: var(--bg-darker);
+            color: var(--text-light);
+            font-size: 0.9em;
+        }
+
+        .user-dropdown-menu .username-input-group button {
+            background-color: var(--accent-purple);
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            font-size: 0.9em;
+            width: 100%;
+            text-align: center;
+            display: block; /* Ensure it takes full width */
+        }
+
+        .user-dropdown-menu .username-input-group button:hover {
+            background-color: #9b59b6;
+        }
+
+
+        /* Sections */
+        .section {
+            margin-bottom: calc(var(--padding-md) * 1.5);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--padding-md);
+        }
+
+        .section-header h2 {
+            font-size: 1.5em;
+            color: var(--text-light);
+        }
+
+        .section-header .see-all {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: color 0.2s ease;
+        }
+
+        .section-header .see-all:hover {
+            color: var(--text-light);
+        }
+
+        /* Cards Grid (New Albums, Playlists, Search Results) */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adaptable */
+            gap: var(--padding-md);
+        }
+
+        .album-card, .playlist-card, .search-song-card {
+            background-color: var(--bg-dark);
+            border-radius: var(--border-radius);
+            padding: var(--padding-sm);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            cursor: pointer;
+            position: relative; /* Para el botón de play */
+        }
+
+        .album-card:hover, .playlist-card:hover, .search-song-card:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .album-card.active {
+            background: linear-gradient(135deg, var(--accent-pink) 0%, #ff4500 100%); /* Degradado del álbum activo */
+            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+            color: #fff; /* Texto blanco en el card activo */
+        }
+
+        .album-card img, .playlist-card img, .search-song-card img {
+            width: 100%;
+            height: auto;
+            border-radius: var(--border-radius);
+            margin-bottom: var(--padding-sm);
+            object-fit: cover;
+        }
+
+        .album-card .card-info h3, .playlist-card h3, .search-song-card h3 {
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: inherit; /* Hereda el color del padre para el card activo */
+        }
+
+        .album-card .card-info p, .search-song-card p {
+            font-size: 0.9em;
+            color: var(--text-muted);
+            color: inherit; /* Hereda el color */
+            opacity: 0.8; /* Ligeramente más opaco para el card activo */
+        }
+
+        /* Play button for card items (search results) */
+        .search-song-card .play-song-btn {
+            background-color: var(--accent-pink);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px; /* Más grande */
+            height: 45px; /* Más grande */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em; /* Icono más grande */
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            position: absolute; /* Posicionar sobre la imagen */
+            bottom: calc(var(--padding-sm) + 40px); /* Ajustar posición */
+            right: calc(var(--padding-sm) + 5px); /* Ajustar posición */
+            opacity: 0; /* Oculto por defecto */
+        }
+
+        .search-song-card:hover .play-song-btn {
+            opacity: 1; /* Mostrar al pasar el ratón */
+            transform: scale(1.1);
+        }
+
+        .search-song-card .play-song-btn:hover {
+            background-color: #ff85c6;
+            transform: scale(1.2);
+        }
+
+
+        /* Top Charts List */
+        .chart-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chart-item {
+            background-color: var(--bg-dark);
+            padding: var(--padding-sm) var(--padding-md);
+            border-radius: var(--border-radius);
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+            position: relative; /* Para posicionar el botón de play */
+            display: flex; /* Ensure flex for content alignment */
+            align-items: center;
+        }
+
+        .chart-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-item.active {
+            background-color: var(--accent-purple); /* Color del item activo en la lista */
+            box-shadow: 0 3px 10px rgba(138, 43, 226, 0.3);
+        }
+
+        .chart-item .chart-track-info {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .chart-item .track-number {
+            font-size: 1.1em;
+            margin-right: var(--padding-md);
+            width: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        .chart-item.active .track-number {
+            color: var(--text-light); /* Changed to text-light for better contrast */
+        }
+
+        .chart-item .track-details {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .chart-item .track-details img {
+            width: 40px; /* Tamaño de la imagen en la lista */
+            height: 40px;
+            border-radius: 5px;
+            margin-right: var(--padding-sm);
+            object-fit: cover;
+        }
+
+        .chart-item .track-details .text-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-item .track-details h3 {
+            font-size: 1em;
+            margin-bottom: 3px;
+            color: var(--text-light); /* Changed to text-light for better contrast */
+        }
+
+        .chart-item .track-details p {
+            font-size: 0.85em;
+            color: var(--text-muted);
+        }
+
+        .chart-item.active .track-details p {
+            color: var(--text-light); /* Changed to text-light for better contrast */
+            opacity: 0.8;
+        }
+
+        .chart-item .track-duration {
+            font-size: 0.9em;
+            color: var(--text-muted);
+            margin-left: var(--padding-md);
+        }
+
+        .chart-item.active .track-duration {
+            color: var(--text-light); /* Changed to text-light for better contrast */
+        }
+
+        .chart-item .track-actions {
+            display: flex;
+            gap: var(--padding-sm);
+            margin-left: var(--padding-md);
+        }
+
+        .chart-item .track-actions .icon {
+            font-size: 1.2em;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .chart-item .track-actions .icon:hover {
+            color: var(--text-light);
+        }
+
+        .chart-item.active .track-actions .icon {
+            color: var(--text-light); /* Changed to text-light for better contrast */
+        }
+
+
+        /* Player Bar (Footer) */
+        .player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px; /* Altura del reproductor */
+            background-color: var(--bg-dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--padding-md);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 100;
+        }
+
+        .current-song-info {
+            display: flex;
+            align-items: center;
+            width: 250px; /* Ancho similar al sidebar para alineación */
+            cursor: pointer; /* Make it clickable */
+        }
+
+        .current-song-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--border-radius);
+            margin-right: var(--padding-sm);
+            object-fit: cover;
+        }
+
+        .current-song-info .song-details h3 {
+            font-size: 1em;
+            margin-bottom: 3px;
+            color: var(--text-light); /* Ensure text is light */
+        }
+
+        .current-song-info .song-details p {
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+
+        .player-controls {
+            display: flex;
+            gap: var(--padding-sm);
+            align-items: center;
+        }
+
+        .player-controls .control-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            padding: 5px;
+            border-radius: 50%;
+        }
+
+        .player-controls .control-btn:hover {
+            color: var(--accent-pink);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .player-controls .main-play-btn {
+            font-size: 2em;
+            color: var(--accent-pink);
+        }
+
+        .player-controls .main-play-btn:hover {
+            color: #ff85c6;
+        }
+
+        .progress-bar-container {
+            display: flex;
+            align-items: center;
+            flex-grow: 1; /* Ocupa el espacio central */
+            margin: 0 var(--padding-md);
+        }
+
+        .progress-bar-container .time {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            margin: 0 10px;
+        }
+
+        .progress-bar {
+            flex-grow: 1;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent-pink);
+            border-radius: 2px;
+        }
+
+        .progress-handle {
+            position: absolute;
+            top: 50%;
+            left: var(--progress-fill-width, 60%); /* Usar una variable JS si es dinámico */
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background-color: var(--accent-pink);
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(255, 105, 180, 0.5);
+        }
+
+        .volume-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--padding-sm);
+            width: 200px; /* Ajustar según sea necesario */
+        }
+
+        .volume-controls .icon {
+            font-size: 1.2em;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .volume-bar {
+            flex-grow: 1;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .volume-fill {
+            height: 100%;
+            background-color: var(--text-light);
+            border-radius: 2px;
+        }
+
+        .volume-handle {
+            position: absolute;
+            top: 50%;
+            left: var(--volume-fill-width, 70%); /* Usar una variable JS si es dinámico */
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background-color: var(--text-light);
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Custom Scrollbar (Solo en navegadores basados en Webkit como Chrome, Safari) */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px; /* Para scrollbar horizontal si fuera necesario */
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-darker);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Estilos para la sección de resultados de búsqueda */
+        #search-results-section {
+            display: none; /* Oculto por defecto */
+        }
+
+        #search-results-section.active {
+            display: block; /* Mostrar cuando hay resultados */
+        }
+
+        .search-results-message {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 1.2em;
+            color: var(--text-muted);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 200; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--bg-dark);
+            margin: auto;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            position: relative;
+            text-align: center;
+            /* Added for better centering of internal elements */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-button {
+            color: var(--text-muted);
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--text-light);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Styles for Song Info Modal */
+        #song-info-modal .modal-content {
+            max-width: 500px;
+            padding: 40px;
+        }
+
+        #modal-song-cover {
+            width: 200px;
+            height: 200px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            object-fit: cover;
+        }
+
+        #modal-song-title {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: var(--text-light); /* Ensure text is light */
+        }
+
+        #modal-song-artist,
+        #modal-song-album {
+            font-size: 1.2em;
+            color: var(--text-light); /* Ensure text is light for better contrast */
+            margin-bottom: 5px;
+        }
+
+        #modal-song-lyrics {
+            font-size: 0.9em;
+            color: var(--text-light); /* Changed to --text-light for better contrast */
+            margin-top: 20px;
+            text-align: center;
+            max-height: 200px; /* Limit height for scroll if lyrics are long */
+            overflow-y: auto; /* Enable scrolling for lyrics */
+            padding: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            white-space: pre-wrap; /* Preserve whitespace and allow wrapping */
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <!-- <img src="logo.png" alt="Arian Music Logo"> -->
+                <h2>Arian</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h3>Menú</h3>
+                    <ul>
+                        <li class="active"><a href="#"><i class="fas fa-compass icon"></i> Explore</a></li>
+                        <li><a href="#"><i class="fas fa-podcast icon"></i> Podcast</a></li>
+                        <li><a href="#"><i class="fas fa-compact-disc icon"></i> Albums</a></li>
+                        <li><a href="#"><i class="fas fa-microphone-alt icon"></i> Artists</a></li>
+                        <li><a href="#"><i class="fas fa-calendar-alt icon"></i> Events</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h3>My Music</h3>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-history icon"></i> Recently Played</a></li>
+                        <li><a href="#"><i class="fas fa-heart icon"></i> Favorite Songs</a></li>
+                        <li><a href="#"><i class="fas fa-folder-open icon"></i> Local Files</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h3>Playlists</h3>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-headphones icon"></i> My Daily Mix</a></li>
+                        <li><a href="#"><i class="fas fa-star icon"></i> Good Vibes</a></li>
+                        <li><a href="#"><i class="fas fa-palm-tree icon"></i> Tropical House</li>
+                        <li><a href="#"><i class="fas fa-smile icon"></i> Happy Chill Good</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="navigation-buttons">
+                    <button class="nav-btn"><i class="fas fa-chevron-left icon"></i></button>
+                    <button class="nav-btn"><i class="fas fa-chevron-right icon"></i></button>
+                </div>
+                <div class="search-bar">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search for music, artists etc..." onkeyup="buscar()">
+                </div>
+                <!-- User Profile Wrapper (contains profile info and dropdown menu) -->
+                <div class="user-profile-wrapper">
+                    <!-- User Profile Section (always shown as no login/logout) -->
+                    <div class="user-profile" id="user-profile-section">
+                        <img id="user-avatar" src="https://via.placeholder.com/30/8a2be2/ffffff?text=AW" alt="User Profile" class="profile-avatar">
+                        <span id="user-name">Usuario Local</span> <!-- Default user name -->
+                        <i class="fas fa-caret-down dropdown-icon"></i>
+                    </div>
+                    <!-- Auth Buttons (Removed) -->
+                    <div class="auth-buttons" id="auth-buttons">
+                        <!-- These buttons are now removed as there is no Firebase authentication -->
+                    </div>
+                    <!-- User Dropdown Menu -->
+                    <div class="user-dropdown-menu" id="user-dropdown-menu">
+                        <div class="username-input-group">
+                            <input type="text" id="username-input" placeholder="Nuevo nombre de usuario">
+                            <button id="save-username-button">Guardar Nombre</button>
+                        </div>
+                        <div class="menu-item" id="profile-picture-upload-item">
+                            <input type="file" id="profile-picture-input" accept="image/*">
+                            <label for="profile-picture-input"><i class="fas fa-upload"></i> Subir Foto</label>
+                        </div>
+                        <div class="menu-item">
+                            <button id="reset-profile-button"><i class="fas fa-sync-alt"></i> Resetear Perfil</button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="section new-albums" id="new-albums-section">
+                <div class="section-header">
+                    <h2>New Albums</h2>
+                    <a href="#" class="see-all">See all</a>
+                </div>
+                <div class="cards-grid">
+                    <div class="album-card">
+                        <img src="https://via.placeholder.com/200x200/5a2d6b/ffffff?text=Album+1" alt="Freaking Me Out">
+                        <div class="card-info">
+                            <h3>Freaking Me Out</h3>
+                            <p>Ava Max</p>
+                        </div>
+                    </div>
+                    <div class="album-card active">
+                        <img src="https://via.placeholder.com/200x200/ff69b4/ffffff?text=Album+2" alt="Ghostmusic Dance">
+                        <div class="card-info">
+                            <h3>Ghostmusic Dance</h3>
+                            <p>Dance</p>
+                        </div>
+                    </div>
+                    <div class="album-card">
+                        <img src="https://via.placeholder.com/200x200/00bfff/ffffff?text=Album+3" alt="Electro Collection">
+                        <div class="card-info">
+                            <h3>Electro Collection</h3>
+                            <p>Deep City</p>
+                        </div>
+                    </div>
+                    <div class="album-card">
+                        <img src="https://via.placeholder.com/200x200/9370db/ffffff?text=Album+4" alt="The Alley">
+                        <div class="card-info">
+                            <h3>The Alley</h3>
+                            <p>Carlin</p>
+                        </div>
+                    </div>
+                    <div class="album-card">
+                        <img src="https://via.placeholder.com/200x200/ff4500/ffffff?text=Album+5" alt="Party Dancer">
+                        <div class="card-info">
+                            <h3>Party Dancer</h3>
+                            <p>DJ Khaled</p>
+                        </div>
+                    </div>
+                    <div class="album-card">
+                        <img src="https://via.placeholder.00/ffd700/ffffff?text=Album+6" alt="Summer Vibe">
+                        <div class="card-info">
+                            <h3>Summer Vibe</h3>
+                            <p>Unknown</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section top-charts" id="top-charts-section">
+                <div class="section-header">
+                    <h2>Top Charts</h2>
+                </div>
+                <div class="chart-list">
+                    <div class="chart-item">
+                        <div class="chart-track-info">
+                            <span class="track-number">1</span>
+                            <div class="track-details">
+                                <h3>Abstract Walking</h3>
+                                <p>Sam Smith</p>
+                            </div>
+                        </div>
+                        <span class="track-duration">2:47</span>
+                        <div class="track-actions">
+                            <i class="fas fa-heart icon"></i>
+                            <i class="fas fa-plus icon"></i>
+                        </div>
+                    </div>
+                    <div class="chart-item active">
+                        <div class="chart-track-info">
+                            <span class="track-number">2</span>
+                            <div class="track-details">
+                                <h3>Go Away Girl Mix</h3>
+                                <p>Swaatie Tunes</p>
+                            </div>
+                        </div>
+                        <span class="track-duration">3:28</span>
+                        <div class="track-actions">
+                            <i class="fas fa-heart icon"></i>
+                            <i class="fas fa-plus icon"></i>
+                        </div>
+                    </div>
+                    <div class="chart-item">
+                        <div class="chart-track-info">
+                            <span class="track-number">3</span>
+                            <div class="track-details">
+                                <h3>Hotline Miami Mix</h3>
+                                <p>Trevor Scyon</p>
+                            </div>
+                        </div>
+                        <span class="track-duration">2:52</span>
+                        <div class="track-actions">
+                            <i class="fas fa-heart icon"></i>
+                            <i class="fas fa-plus icon"></i>
+                        </div>
+                    </div>
+                    <div class="chart-item">
+                        <div class="chart-track-info">
+                            <span class="track-number">4</span>
+                            <div class="track-details">
+                                <h3>Getting Over You</h3>
+                                <p>Usher</p>
+                            </div>
+                        </div>
+                        <span class="track-duration">4:15</span>
+                        <div class="track-actions">
+                            <i class="fas fa-heart icon"></i>
+                            <i class="fas fa-plus icon"></i>
+                        </div>
+                    </div>
+                    <div class="chart-item">
+                        <div class="chart-track-info">
+                            <span class="track-number">5</span>
+                            <div class="track-details">
+                                <h3>The Subway Song</h3>
+                                <p>Delacey</p>
+                            </div>
+                        </div>
+                        <span class="track-duration">3:40</span>
+                        <div class="track-actions">
+                            <i class="fas fa-heart icon"></i>
+                            <i class="fas fa-plus icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section playlists-section" id="playlists-section">
+                <div class="section-header">
+                    <h2>Playlists</h2>
+                </div>
+                <div class="cards-grid">
+                    <div class="playlist-card">
+                        <img src="https://via.placeholder.com/200x200/ff69b4/ffffff?text=Playlist+1" alt="Summer Vibes">
+                        <h3>Summer Vibes</h3>
+                    </div>
+                    <div class="playlist-card">
+                        <img src="https://via.placeholder.com/200x200/00bfff/ffffff?text=Playlist+2" alt="Mind Right">
+                        <h3>Mind Right</h3>
+                    </div>
+                    <div class="playlist-card">
+                        <img src="https://via.placeholder.com/200x200/9370db/ffffff?text=Playlist+3" alt="Ultimate Indie">
+                        <h3>Ultimate Indie</h3>
+                    </div>
+                    <div class="playlist-card">
+                        <img src="https://via.placeholder.com/200x200/ff4500/ffffff?text=Playlist+4" alt="Jazzy Dinner">
+                        <h3>Jazzy Dinner</h3>
+                    </div>
+                    <div class="playlist-card">
+                        <img src="https://via.placeholder.com/200x200/8a2be2/ffffff?text=Playlist+5" alt="Pop Hits">
+                        <h3>Pop Hits</h3>
+                    </div>
+                    <div class="playlist-card">
+                        <img src="https://via.placeholder.com/200x200/20b2aa/ffffff?text=Playlist+6" alt="Roots Rising">
+                        <h3>Roots Rising</h3>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección para resultados de búsqueda -->
+            <section class="section search-results-section" id="search-results-section">
+                <div class="section-header">
+                    <h2>Resultados de Búsqueda</h2>
+                </div>
+                <div class="cards-grid" id="search-results-container">
+                    <!-- Los resultados de la búsqueda se insertarán aquí -->
+                </div>
+                <p class="search-results-message" id="no-results-message" style="display: none;">No se encontraron resultados para tu búsqueda.</p>
+            </section>
+        </main>
+
+        <!-- Player Bar -->
+        <footer class="player-bar">
+            <div class="current-song-info">
+                <img id="player-cover" src="https://via.placeholder.com/50x50/ff69b4/ffffff?text=Track" alt="Current Song Cover">
+                <div class="song-details">
+                    <h3 id="player-title">No hay canción reproduciéndose</h3>
+                    <p id="player-artist-album"></p>
+                </div>
+            </div>
+            <div class="player-controls">
+                <button class="control-btn"><i class="fas fa-backward icon"></i></button>
+                <button class="control-btn main-play-btn" id="play-pause-btn"><i class="fas fa-play icon"></i></button>
+                <button class="control-btn"><i class="fas fa-forward icon"></i></button>
+            </div>
+            <div class="progress-bar-container">
+                <span class="time" id="current-time">0:00</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+                    <div class="progress-handle" id="progress-handle"></div>
+                </div>
+                <span class="time" id="total-time">0:00</span>
+            </div>
+            <div class="volume-controls">
+                <i class="fas fa-volume-up icon"></i>
+                <div class="volume-bar">
+                    <div class="volume-fill" style="width: 70%;"></div>
+                    <div class="volume-handle"></div>
+                </div>
+                <i class="fas fa-redo-alt icon"></i>
+                <i class="fas fa-random icon"></i>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal de Información de Canción -->
+    <div id="song-info-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-song-info-modal">&times;</span>
+            <img id="modal-song-cover" src="" alt="Album Cover" class="modal-cover">
+            <h2 id="modal-song-title"></h2>
+            <p id="modal-song-artist"></p>
+            <p id="modal-song-album"></p>
+            <div id="modal-song-lyrics"></div> <!-- Nuevo elemento para la letra -->
+        </div>
+    </div>
+
+    <script>
+        // Add a hidden canvas for color extraction
+        const colorCanvas = document.createElement('canvas');
+        const colorCanvasCtx = colorCanvas.getContext('2d');
+        colorCanvas.style.display = 'none'; // Keep it hidden
+        document.body.appendChild(colorCanvas);
+
+        // Referencias a los elementos del DOM para las secciones principales y de búsqueda
+        const newAlbumsSection = document.getElementById('new-albums-section');
+        const topChartsSection = document.getElementById('top-charts-section');
+        const playlistsSection = document.getElementById('playlists-section');
+        const searchResultsSection = document.getElementById('search-results-section');
+        const searchResultsContainer = document.getElementById('search-results-container');
+        const noResultsMessage = document.getElementById('no-results-message');
+        const searchInput = document.getElementById('search-input');
+
+        // Referencias a los elementos del reproductor de la parte inferior
+        const playerCover = document.getElementById('player-cover');
+        const playerTitle = document.getElementById('player-title');
+        const playerArtistAlbum = document.getElementById('player-artist-album');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const audioPlayer = new Audio(); // Instancia de Audio para reproducir música
+        const currentTimeSpan = document.getElementById('current-time');
+        const totalTimeSpan = document.getElementById('total-time');
+        const progressFill = document.getElementById('progress-fill');
+        const progressHandle = document.getElementById('progress-handle');
+        const progressBar = document.querySelector('.progress-bar'); // Referencia a la barra de progreso completa
+
+        let currentPlayingSong = null; // Para mantener un registro de la canción actual
+
+        // Elementos del perfil de usuario y menú desplegable
+        const userProfileSection = document.getElementById('user-profile-section');
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        const userDropdownMenu = document.getElementById('user-dropdown-menu');
+        const profilePictureInput = document.getElementById('profile-picture-input');
+        const resetProfileButton = document.getElementById('reset-profile-button');
+        const usernameInput = document.getElementById('username-input');
+        const saveUsernameButton = document.getElementById('save-username-button');
+
+        // New references for song info modal
+        const songInfoModal = document.getElementById('song-info-modal');
+        const closeSongInfoModalBtn = document = document.getElementById('close-song-info-modal');
+        const modalSongCover = document.getElementById('modal-song-cover');
+        const modalSongTitle = document.getElementById('modal-song-title');
+        const modalSongArtist = document.getElementById('modal-song-artist');
+        const modalSongAlbum = document.getElementById('modal-song-album');
+        const modalSongLyrics = document.getElementById('modal-song-lyrics'); // Nueva referencia para la letra
+
+
+        // Lógica para mostrar/ocultar el menú desplegable del perfil
+        userProfileSection.addEventListener('click', (event) => {
+            event.stopPropagation(); // Evita que el clic se propague y cierre el menú inmediatamente
+            userDropdownMenu.style.display = userDropdownMenu.style.display === 'block' ? 'none' : 'block';
+            if (userDropdownMenu.style.display === 'block') {
+                usernameInput.value = userName.textContent; // Populate input with current username
+            }
+        });
+
+        // Cierra el menú desplegable si se hace clic fuera de él
+        document.addEventListener('click', (event) => {
+            if (!userProfileSection.contains(event.target) && !userDropdownMenu.contains(event.target)) {
+                userDropdownMenu.style.display = 'none';
+            }
+        });
+
+        // Función para guardar el nombre de usuario
+        saveUsernameButton.addEventListener('click', () => {
+            const newUsername = usernameInput.value.trim();
+            if (newUsername) {
+                userName.textContent = newUsername;
+                console.log("Nombre de usuario actualizado localmente:", newUsername);
+                userDropdownMenu.style.display = 'none'; // Cierra el menú después de guardar
+            } else {
+                console.warn("El nombre de usuario no puede estar vacío.");
+                // Optionally, provide user feedback in the UI
+            }
+        });
+
+        // Function to calculate perceived brightness (luminance)
+        function getLuminance(r, g, b) {
+            return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        }
+
+        // Function to extract dominant color and apply theme
+        async function extractDominantColorAndApplyTheme(imageUrl) {
+            if (!imageUrl || imageUrl.includes('placehold.co')) { // Skip if it's a placeholder
+                applyDefaultTheme();
+                return;
+            }
+
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // Important for CORS
+            img.src = imageUrl;
+
+            img.onload = () => {
+                colorCanvas.width = img.width;
+                colorCanvas.height = img.height;
+                colorCanvasCtx.drawImage(img, 0, 0, img.width, img.height);
+
+                const imageData = colorCanvasCtx.getImageData(0, 0, img.width, img.height).data;
+                let r = 0, g = 0, b = 0;
+                let count = 0;
+                const step = 4 * 10; // Sample every 10th pixel (4 values per pixel: R,G,B,A)
+
+                for (let i = 0; i < imageData.length; i += step) {
+                    r += imageData[i];
+                    g += imageData[i + 1];
+                    b += imageData[i + 2];
+                    count++;
+                }
+
+                r = Math.floor(r / count);
+                g = Math.floor(g / count);
+                b = Math.floor(b / count);
+
+                const dominantColor = `rgb(${r}, ${g}, ${b})`;
+
+                // Determine if text should be light or dark based on dominant color brightness
+                const luminance = getLuminance(r, g, b);
+                const textColor = luminance > 0.5 ? '#1e1e1e' : '#e0e0e0'; // Dark text for light backgrounds, light for dark
+
+                // Derive a darker background color (simple approach)
+                const darkerR = Math.max(0, r - 40);
+                const darkerG = Math.max(0, g - 40);
+                const darkerB = Math.max(0, b - 40);
+                const darkerBg = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+
+                // Apply colors to CSS variables
+                document.documentElement.style.setProperty('--bg-darker', darkerBg); // Main background
+                document.documentElement.style.setProperty('--bg-dark', `rgb(${Math.max(0, r - 20)}, ${Math.max(0, g - 20)}, ${Math.max(0, b - 20)})`); // Sidebar/card background
+                document.documentElement.style.setProperty('--accent-pink', dominantColor); // Accent color
+                document.documentElement.style.setProperty('--accent-purple', `rgb(${Math.max(0, r - 10)}, ${Math.max(0, g - 10)}, ${Math.max(0, b - 10)})`); // Another accent (slightly different)
+                document.documentElement.style.setProperty('--text-light', textColor); // Text color
+                document.documentElement.style.setProperty('--text-muted', `rgba(${r}, ${g}, ${b}, 0.7)`); // Muted text color
+            };
+
+            img.onerror = () => {
+                console.error("Failed to load image for color extraction:", imageUrl);
+                applyDefaultTheme(); // Fallback to default theme on error
+            };
+        }
+
+        // Function to apply default theme colors
+        function applyDefaultTheme() {
+            document.documentElement.style.setProperty('--bg-darker', '#121212');
+            document.documentElement.style.setProperty('--bg-dark', '#1e1e1e');
+            document.documentElement.style.setProperty('--accent-pink', '#ff69b4');
+            document.documentElement.style.setProperty('--accent-purple', '#8a2be2');
+            document.documentElement.style.setProperty('--text-light', '#e0e0e0');
+            document.documentElement.style.setProperty('--text-muted', '#888');
+        }
+
+        // Initial theme application on load
+        document.addEventListener('DOMContentLoaded', applyDefaultTheme);
+
+        // Función para subir la foto de perfil (solo localmente)
+        profilePictureInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const fileReader = new FileReader();
+                fileReader.onload = (e) => {
+                    userAvatar.src = e.target.result; // Actualiza la imagen del avatar en el header
+                    console.log("Foto de perfil actualizada localmente.");
+                    userDropdownMenu.style.display = 'none'; // Cierra el menú después de seleccionar la foto
+                    // Optionally, apply theme based on the new profile picture
+                    // extractDominantColorAndApplyTheme(e.target.result);
+                };
+                fileReader.readAsDataURL(file); // Lee el archivo como una URL de datos
+            }
+        });
+
+        // Función para resetear el perfil a los valores por defecto
+        resetProfileButton.addEventListener('click', () => {
+            userAvatar.src = 'https://via.placeholder.com/30/8a2be2/ffffff?text=AW';
+            userName.textContent = 'Usuario Local';
+            console.log("Perfil reseteado a valores por defecto.");
+            userDropdownMenu.style.display = 'none'; // Cierra el menú
+            applyDefaultTheme(); // Reset theme to default
+        });
+
+        // Funciones existentes de búsqueda y reproductor de música
+
+        // Función para formatear el tiempo (segundos a MM:SS)
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        }
+
+        // Eventos para el reproductor de audio
+        audioPlayer.addEventListener('timeupdate', () => {
+            const currentTime = audioPlayer.currentTime;
+            const duration = audioPlayer.duration;
+            currentTimeSpan.textContent = formatTime(currentTime);
+
+            if (isFinite(duration)) { // Asegurarse de que la duración sea un número finito
+                const progressPercent = (currentTime / duration) * 100;
+                progressFill.style.width = `${progressPercent}%`;
+                progressHandle.style.left = `${progressPercent}%`;
+            }
+        });
+
+        audioPlayer.addEventListener('loadedmetadata', () => {
+            totalTimeSpan.textContent = formatTime(audioPlayer.duration);
+        });
+
+        audioPlayer.addEventListener('ended', () => {
+            playPauseBtn.querySelector('i').className = 'fas fa-play icon'; // Cambiar a icono de play
+            currentPlayingSong = null; // Reiniciar la canción actual
+            playerTitle.textContent = 'No hay canción reproduciéndose';
+            playerArtistAlbum.textContent = '';
+            playerCover.src = 'https://via.placeholder.com/50x50/ff69b4/ffffff?text=Track';
+            currentTimeSpan.textContent = '0:00';
+            totalTimeSpan.textContent = '0:00';
+            progressFill.style.width = '0%';
+            progressHandle.style.left = '0%';
+            applyDefaultTheme(); // Reset theme to default when playback ends
+        });
+
+        playPauseBtn.addEventListener('click', () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playPauseBtn.querySelector('i').className = 'fas fa-pause icon';
+            } else {
+                audioPlayer.pause();
+                playPauseBtn.querySelector('i').className = 'fas fa-play icon';
+            }
+        });
+
+        progressBar.addEventListener('click', (e) => {
+            if (isFinite(audioPlayer.duration)) {
+                const progressBarWidth = progressBar.clientWidth;
+                const clickX = e.offsetX;
+                const newTime = (clickX / progressBarWidth) * audioPlayer.duration;
+                audioPlayer.currentTime = newTime;
+            }
+        });
+
+        async function buscar() {
+            const query = searchInput.value.trim();
+
+            if (query === '') {
+                // Si la búsqueda está vacía, mostrar las secciones originales y ocultar resultados
+                searchResultsSection.classList.remove('active');
+                newAlbumsSection.style.display = 'block';
+                topChartsSection.style.display = 'block';
+                playlistsSection.style.display = 'block';
+                searchResultsContainer.innerHTML = ''; // Limpiar resultados anteriores
+                noResultsMessage.style.display = 'none';
+                return;
+            }
+
+            // Ocultar secciones originales y mostrar la sección de resultados
+            newAlbumsSection.style.display = 'none';
+            topChartsSection.style.display = 'none';
+            playlistsSection.style.display = 'none';
+            searchResultsSection.classList.add('active');
+            searchResultsContainer.innerHTML = ''; // Limpiar resultados anteriores
+            noResultsMessage.style.display = 'none';
+
+            try {
+                // La URL de tu backend de Node.js, que debe estar corriendo en http://localhost:3000
+                const backendUrl = `http://localhost:3000/buscar?q=${encodeURIComponent(query)}`;
+                console.log(`Intentando buscar en el backend: ${backendUrl}`); // Log para depuración
+                const res = await fetch(backendUrl);
+                if (!res.ok) {
+                    const errorText = await res.text(); // Obtener el texto de error crudo
+                    console.error(`Respuesta del backend no OK: ${res.status} - ${errorText}`);
+                    throw new Error(`Error HTTP! estado: ${res.status}, mensaje: ${errorText}`);
+                }
+                const canciones = await res.json();
+                console.log("Canciones recibidas:", canciones);
+
+                if (canciones.length === 0) {
+                    noResultsMessage.style.display = 'block';
+                } else {
+                    canciones.forEach(cancion => {
+                        const div = document.createElement('div');
+                        div.className = 'album-card search-song-card'; // Volvemos a usar album-card para el estilo de cuadrícula
+                        div.innerHTML = `
+                            <img src="${cancion.imagen}" alt="${cancion.titulo}" onerror="this.onerror=null;this.src='https://placehold.co/200x200/333333/ffffff?text=No+Image';">
+                            <div class="card-info">
+                                <h3>${cancion.titulo}</h3>
+                                <p>${cancion.artista} – <em>${cancion.album}</em></p>
+                            </div>
+                            <button class="play-song-btn"
+                                data-title="${cancion.titulo}"
+                                data-artist="${cancion.artista}"
+                                data-album="${cancion.album}"
+                                data-preview="${cancion.preview}"
+                                data-image="${cancion.imagen}">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        `;
+                        // Añadir el evento de clic al botón de reproducir dentro de la tarjeta
+                        const playButton = div.querySelector('.play-song-btn');
+                        playButton.addEventListener('click', (event) => {
+                            event.stopPropagation(); // Evitar que el clic en el botón afecte a la tarjeta padre
+                            const songData = event.currentTarget.dataset;
+                            playSongInPlayer(songData);
+                        });
+                        searchResultsContainer.appendChild(div);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al buscar canciones:', error);
+                searchResultsContainer.innerHTML = `<p class="search-results-message">Error al cargar los resultados: ${error.message}. Asegúrate de que tu servidor Node.js esté corriendo en http://localhost:3000 y que no haya problemas de CORS.</p>`;
+                noResultsMessage.style.display = 'none';
+            }
+        }
+
+        // Función para reproducir una canción en el reproductor de la parte inferior
+        function playSongInPlayer(song) {
+            // Actualizar la información del reproductor
+            playerCover.src = song.image;
+            playerCover.alt = song.title;
+            playerTitle.textContent = song.title;
+            playerArtistAlbum.textContent = `${song.artist} – ${song.album}`;
+
+            // Actualizar y reproducir el audio
+            audioPlayer.src = song.preview;
+            audioPlayer.play();
+            playPauseBtn.querySelector('i').className = 'fas fa-pause icon'; // Cambiar a icono de pausa
+            
+            // Store more detailed song info for the modal
+            currentPlayingSong = {
+                title: song.title,
+                artist: song.artist,
+                album: song.album,
+                image: song.image,
+                // Placeholder for lyrics, as they are not provided by the current backend
+                lyrics: `Esta es una letra de ejemplo para la canción "${song.title}" de ${song.artist}.
+                \n\nVerso 1:
+                Las estrellas brillan hoy,
+                Guiando mi camino.
+                La música me lleva lejos,
+                Un dulce destino.
+                \n\nCoro:
+                Siente el ritmo, deja que te envuelva,
+                En cada nota hay una nueva historia.
+                Arian Music, siempre contigo,
+                En cada melodía, una victoria.`
+            };
+
+            // Apply theme based on the current song's album cover
+            extractDominantColorAndApplyTheme(song.image);
+        }
+
+        // Make current-song-info clickable to open modal
+        const currentSongInfo = document.querySelector('.current-song-info');
+        currentSongInfo.addEventListener('click', () => {
+            if (currentPlayingSong) {
+                modalSongCover.src = currentPlayingSong.image;
+                modalSongTitle.textContent = currentPlayingSong.title;
+                modalSongArtist.textContent = currentPlayingSong.artist;
+                modalSongAlbum.textContent = currentPlayingSong.album;
+                modalSongLyrics.textContent = currentPlayingSong.lyrics; // Set lyrics content
+                songInfoModal.style.display = 'flex'; // Show the modal
+            }
+        });
+
+        // Close song info modal
+        closeSongInfoModalBtn.addEventListener('click', () => {
+            songInfoModal.style.display = 'none';
+        });
+
+        // Also close if clicking outside the modal content
+        songInfoModal.addEventListener('click', (event) => {
+            if (event.target === songInfoModal) {
+                songInfoModal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
