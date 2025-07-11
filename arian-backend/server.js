@@ -14,21 +14,20 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-// --- NUEVO: Servir archivos estáticos del frontend ---
+// --- Servir archivos estáticos del frontend ---
 // Esto le dice a Express que sirva los archivos estáticos (HTML, CSS, JS, imágenes)
 // que se encuentran en la carpeta 'arian-frontend'.
 // path.join(__dirname, 'arian-frontend') construye la ruta absoluta a esa carpeta.
 app.use(express.static(path.join(__dirname, 'arian-frontend')));
 
-// Ruta para la raíz ("/")
-// Como ahora estamos sirviendo archivos estáticos, la ruta '/' será manejada por
-// express.static, que buscará 'index.html' por defecto en 'arian-frontend'.
-// Si no tienes un index.html, o quieres un mensaje diferente para la raíz,
-// puedes descomentar la siguiente línea. Sin embargo, para un frontend,
-// lo normal es que el index.html sea la página de inicio.
-// app.get('/', (req, res) => {
-//   res.send('¡Servidor de búsqueda de música de Arian Music (Deezer API) está funcionando!');
-// });
+// La ruta para la raíz ("/") ya es manejada por express.static si existe un index.html
+// en la carpeta 'arian-frontend'. Si quieres un mensaje específico para la raíz
+// y no un archivo HTML, puedes descomentar y usar la siguiente línea:
+/*
+app.get('/', (req, res) => {
+  res.send('¡Servidor de búsqueda de música de Arian Music (Deezer API) está funcionando!');
+});
+*/
 
 app.get('/buscar', async (req, res) => {
   const query = req.query.q;
@@ -52,12 +51,11 @@ app.get('/buscar', async (req, res) => {
   }
 });
 
-// --- NUEVO: Ruta 'catch-all' para Single Page Applications (SPAs) ---
-// Si tu frontend es una SPA (como React, Vue, Angular) que maneja sus propias rutas,
-// esta línea asegura que cualquier ruta no definida por el backend redirija al index.html.
-// Esto es útil para que las recargas de página o las URLs directas funcionen correctamente en el frontend.
-// Si tu frontend es solo un HTML simple sin enrutamiento interno, esta línea es opcional
-// pero no hace daño.
+// --- Ruta 'catch-all' para Single Page Applications (SPAs) ---
+// Esta línea asegura que cualquier ruta no definida por el backend redirija al index.html.
+// Es útil para que las recargas de página o las URLs directas funcionen correctamente en el frontend,
+// especialmente si tu frontend es una SPA (como React, Vue, Angular) que maneja sus propias rutas.
+// Si tu frontend es solo un HTML simple sin enrutamiento interno, esta línea es opcional pero no hace daño.
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'arian-frontend', 'index.html'));
 });
